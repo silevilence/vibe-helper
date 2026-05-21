@@ -74,3 +74,8 @@ export interface ToolMenuItem {
   /** 辅助说明 */
   hint?: string;
 }
+
+/** 步骤结果：next 表示继续下一步，back 表示返回上一步 */
+export type StepResult<T> =
+  | { type: 'next'; data: T }
+  | { type: 'back' };

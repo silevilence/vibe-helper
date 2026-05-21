@@ -1,0 +1,13 @@
+{
+    "$schema": "https://charm.land/crush.json",
+    "options": {
+        "initialize_as": ".github/copilot-instructions.md",
+        "skills_paths": [
+            ".github/skills"
+        ]
+    },
+    "tools": {
+        "ls": {},
+        "grep": {}
+    }
+}

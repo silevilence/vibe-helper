@@ -1,0 +1,2 @@
+   - AI 可以执行 Git 操作（包括 `git add`、`git commit`、`git push` 等）以协助代码管理。
+   - 提交信息应清晰描述变更内容，遵循 Conventional Commits 规范。
