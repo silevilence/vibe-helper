@@ -9,7 +9,10 @@
   "scripts": {
     "dev": "npx tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
@@ -20,7 +23,9 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.7.0",
-    "typescript": "^5.6.0"
+    "@vitest/coverage-v8": "^4.1.7",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.7"
   },
   "engines": {
     "node": ">=18.0.0"
