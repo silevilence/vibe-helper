@@ -5,7 +5,7 @@
  */
 
 /** 开发语言选项 */
-export type Language = 'csharp' | 'fsharp' | 'typescript' | 'rust' | 'cpp';
+export type Language = 'csharp' | 'fsharp' | 'typescript' | 'rust' | 'cpp' | 'python';
 
 /** 语言对应的交付类型映射 */
 export const LanguageDeliveryMap: Record<Language, string[]> = {
@@ -14,10 +14,14 @@ export const LanguageDeliveryMap: Record<Language, string[]> = {
   typescript: ['CLI', 'React', 'Vue', 'NPM 包', 'Electron'],
   rust: ['CLI', 'WASM', '嵌入式'],
   cpp: ['CLI', 'GUI (Qt)', '嵌入式'],
+  python: ['CLI', 'FastAPI', 'Flask', 'Django', '脚本/自动化'],
 };
 
 /** C# / F# 的 .NET 运行时版本 */
 export type DotNetVersion = 'net8' | 'net10';
+
+/** Python 依赖管理工具 */
+export type PythonDepManager = 'uv' | 'pip' | 'conda';
 
 /** AI Agent 引擎 */
 export type AiEngine = 'github-copilot' | 'crush';
@@ -45,6 +49,8 @@ export interface InitOptions {
   deliveryType: string;
   /** .NET 版本（仅 C#/F# 时选择） */
   dotnetVersion?: DotNetVersion;
+  /** Python 依赖管理工具（仅 Python 时选择） */
+  pythonDepManager?: PythonDepManager;
   /** 测试策略 */
   testStrategy: TestStrategy;
   /** 文档更新权限 */

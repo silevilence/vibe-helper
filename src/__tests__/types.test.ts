@@ -10,7 +10,7 @@ import type { Language, ToolMenuItem, StepResult, CommandModule } from '../../co
 describe('LanguageDeliveryMap', () => {
   // ── 正常情况：每种语言都有对应的交付类型列表 ──
   it('所有语言都有对应的交付类型', () => {
-    const languages: Language[] = ['csharp', 'fsharp', 'typescript', 'rust', 'cpp'];
+    const languages: Language[] = ['csharp', 'fsharp', 'typescript', 'rust', 'cpp', 'python'];
     for (const lang of languages) {
       const deliveries = LanguageDeliveryMap[lang];
       expect(deliveries).toBeDefined();
@@ -55,11 +55,20 @@ describe('LanguageDeliveryMap', () => {
     expect(LanguageDeliveryMap.cpp).toContain('嵌入式');
   });
 
+  it('Python 包含 CLI、FastAPI、Flask、Django、脚本/自动化', () => {
+    expect(LanguageDeliveryMap.python).toContain('CLI');
+    expect(LanguageDeliveryMap.python).toContain('FastAPI');
+    expect(LanguageDeliveryMap.python).toContain('Flask');
+    expect(LanguageDeliveryMap.python).toContain('Django');
+    expect(LanguageDeliveryMap.python).toContain('脚本/自动化');
+    expect(LanguageDeliveryMap.python).toHaveLength(5);
+  });
+
   // ── 边界情况：语言映射只读性 ──
   it('LanguageDeliveryMap 键仅包含已定义的语言', () => {
     const keys = Object.keys(LanguageDeliveryMap);
-    expect(keys).toHaveLength(5);
-    expect(keys).toEqual(['csharp', 'fsharp', 'typescript', 'rust', 'cpp']);
+    expect(keys).toHaveLength(6);
+    expect(keys).toEqual(['csharp', 'fsharp', 'typescript', 'rust', 'cpp', 'python']);
   });
 
   // ── 边界情况：每种语言的交付类型无重复 ──

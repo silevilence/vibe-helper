@@ -19,6 +19,7 @@ const LANGUAGE_LABELS: Record<Language, string> = {
   typescript: 'TypeScript',
   rust: 'Rust',
   cpp: 'C++',
+  python: 'Python',
 };
 
 /** 测试策略标签 */
@@ -48,6 +49,10 @@ export async function showPreview(options: InitOptions): Promise<PreviewAction> 
     ? ` (.NET ${options.dotnetVersion === 'net8' ? '8' : '10'})`
     : '';
 
+  const pythonDepInfo = options.pythonDepManager
+    ? ` → ${options.pythonDepManager}`
+    : '';
+
   const skillsInfo =
     options.skills.length > 0 ? options.skills.join('、') : '(未选择)';
 
@@ -55,7 +60,7 @@ export async function showPreview(options: InitOptions): Promise<PreviewAction> 
     `📛 项目名称: ${options.projectName}`,
     options.description ? `📝 项目描述: ${options.description}` : '',
     `🤖 AI 引擎: ${engineNames}`,
-    `🔧 技术栈: ${LANGUAGE_LABELS[options.language]} — ${options.deliveryType}${dotnetInfo}`,
+    `🔧 技术栈: ${LANGUAGE_LABELS[options.language]} — ${options.deliveryType}${dotnetInfo}${pythonDepInfo}`,
     `🧪 测试策略: ${TEST_LABELS[options.testStrategy]}`,
     `📄 文档权限: ${PERM_LABELS[options.docPermission]}自动更新`,
     `🔀 Git 权限: AI ${PERM_LABELS[options.gitPermission]}提交`,

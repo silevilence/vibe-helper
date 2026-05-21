@@ -128,16 +128,16 @@ describe('generateFiles', () => {
     expect(buildCrushJson).toHaveBeenCalled();
   });
 
-  // ── 正常情况：仅 Crush → 仅生成 crush.json ──
-  it('仅 Crush 引擎 → 不生成 copilot-instructions.md', async () => {
+  // ── 正常情况：仅 Crush → 同时生成 copilot-instructions.md 和 crush.json ──
+  it('仅 Crush 引擎 → 也生成 copilot-instructions.md', async () => {
     mockFileExists.mockResolvedValue(true);
 
     const options = makeOptions({ engines: ['crush'] });
     const result = await generateFiles(options, '/fake/res', '/fake/cwd');
 
     expect(result.created).toContain('crush.json');
-    expect(result.created).not.toContain('.github/copilot-instructions.md');
-    expect(buildCopilotInstructions).not.toHaveBeenCalled();
+    expect(result.created).toContain('.github/copilot-instructions.md');
+    expect(buildCopilotInstructions).toHaveBeenCalled();
   });
 
   // ── 边界情况：ROADMAP.md 模板不存在 ──

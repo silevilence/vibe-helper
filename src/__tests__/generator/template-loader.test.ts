@@ -231,6 +231,123 @@ describe('buildCopilotInstructions', () => {
     expect(result.trim()).toBe('');
   });
 
+  // ── 正常情况：Python CLI 项目（uv 依赖管理） ──
+  it('生成 Python CLI 项目的完整配置（uv 依赖管理）', async () => {
+    mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {
+      const p = String(filePath).replace(/\\/g, '/');
+      if (p.includes('directory-structure-python.md')) {
+        return Promise.resolve('├── src/{{PROJECT_NAME}}/\n');
+      }
+      if (p.endsWith('base/copilot-instructions.md')) {
+        return Promise.resolve('# {{PROJECT_NAME}}\n{{LANGUAGE}}\n{{LANGUAGE_SPECIFIC}}\n{{RUNTIME_ENV}}\n{{CODING_STANDARDS}}\n{{TESTING_REQUIREMENTS}}');
+      }
+      if (p.includes('languages/python.md')) {
+        return Promise.resolve('Python 编码规范\n{{DELIVERY_TYPE}}\n{{DEP_MANAGER_RULES}}');
+      }
+      if (p.includes('testing-coverage.md')) {
+        return Promise.resolve('测试覆盖要求');
+      }
+      if (p.includes('python-dep-uv.md')) {
+        return Promise.resolve('uv 工作流约束：使用 uv run');
+      }
+      return Promise.resolve('');
+    });
+
+    const options = makeOptions({
+      language: 'python',
+      deliveryType: 'CLI',
+      pythonDepManager: 'uv',
+    });
+    const result = await buildCopilotInstructions(options, RES_BASE);
+
+    expect(result).toContain('Python');
+    expect(result).toContain('uv');
+    expect(result).toContain('依赖管理');
+    expect(result).toContain('uv 工作流约束');
+    expect(result).toContain('CLI');
+    expect(result).toContain('测试覆盖要求');
+  });
+
+  // ── 正常情况：Python FastAPI 项目（pip 依赖管理） ──
+  it('生成 Python FastAPI 项目的完整配置（pip 依赖管理）', async () => {
+    mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {
+      const p = String(filePath).replace(/\\/g, '/');
+      if (p.endsWith('base/copilot-instructions.md')) {
+        return Promise.resolve('{{LANGUAGE_SPECIFIC}}\n{{RUNTIME_ENV}}\n{{CODING_STANDARDS}}');
+      }
+      if (p.includes('languages/python.md')) {
+        return Promise.resolve('{{DEP_MANAGER_RULES}}');
+      }
+      if (p.includes('python-dep-pip.md')) {
+        return Promise.resolve('pip 工作流：使用 requirements.txt');
+      }
+      return Promise.resolve('');
+    });
+
+    const options = makeOptions({
+      language: 'python',
+      deliveryType: 'FastAPI',
+      pythonDepManager: 'pip',
+    });
+    const result = await buildCopilotInstructions(options, RES_BASE);
+
+    expect(result).toContain('pip');
+    expect(result).toContain('pip 工作流');
+    expect(result).toContain('Python (>= 3.10)');
+  });
+
+  // ── 正常情况：Python Django 项目（conda 依赖管理） ──
+  it('生成 Python Django 项目的完整配置（conda 依赖管理）', async () => {
+    mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {
+      const p = String(filePath).replace(/\\/g, '/');
+      if (p.endsWith('base/copilot-instructions.md')) {
+        return Promise.resolve('{{LANGUAGE_SPECIFIC}}\n{{CODING_STANDARDS}}');
+      }
+      if (p.includes('languages/python.md')) {
+        return Promise.resolve('{{DEP_MANAGER_RULES}}');
+      }
+      if (p.includes('python-dep-conda.md')) {
+        return Promise.resolve('conda 工作流：使用 environment.yml');
+      }
+      return Promise.resolve('');
+    });
+
+    const options = makeOptions({
+      language: 'python',
+      deliveryType: 'Django',
+      pythonDepManager: 'conda',
+    });
+    const result = await buildCopilotInstructions(options, RES_BASE);
+
+    expect(result).toContain('conda');
+    expect(result).toContain('conda 工作流');
+    expect(result).toContain('environment.yml');
+  });
+
+  // ── 边界情况：Python 项目未选择依赖管理器 ──
+  it('Python 项目未选择依赖管理器时无 DEP_MANAGER_RULES 内容', async () => {
+    mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {
+      const p = String(filePath).replace(/\\/g, '/');
+      if (p.endsWith('base/copilot-instructions.md')) {
+        return Promise.resolve('{{LANGUAGE_SPECIFIC}}\n{{CODING_STANDARDS}}');
+      }
+      if (p.includes('languages/python.md')) {
+        return Promise.resolve('{{DEP_MANAGER_RULES}}');
+      }
+      return Promise.resolve('');
+    });
+
+    const options = makeOptions({
+      language: 'python',
+      deliveryType: '脚本/自动化',
+      pythonDepManager: undefined,
+    });
+    const result = await buildCopilotInstructions(options, RES_BASE);
+
+    // LANGUAGE_SPECIFIC 为空（无 pythonDepManager）
+    expect(result.trim()).toBe('');
+  });
+
   // ── 边界情况：无测试策略 ──
   it('测试策略为 none 时正确读取模板', async () => {
     mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {

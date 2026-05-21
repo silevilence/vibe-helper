@@ -11,6 +11,7 @@ import {
   LanguageDeliveryMap,
   type Language,
   type DotNetVersion,
+  type PythonDepManager,
   type StepResult,
 } from '../types.js';
 
@@ -18,6 +19,7 @@ export interface TechStackInput {
   language: Language;
   deliveryType: string;
   dotnetVersion?: DotNetVersion;
+  pythonDepManager?: PythonDepManager;
 }
 
 /** 返回上一步的标记值 */
@@ -30,6 +32,7 @@ const LANGUAGE_LABELS: Record<Language, string> = {
   typescript: 'TypeScript',
   rust: 'Rust',
   cpp: 'C++',
+  python: 'Python',
 };
 
 /**
@@ -107,12 +110,38 @@ export async function collectTechStack(): Promise<StepResult<TechStackInput>> {
       dotnetVersion = version as DotNetVersion;
     }
 
+    // ── 3.4 条件触发：仅 Python 时选择依赖管理工具 ──
+    let pythonDepManager: PythonDepManager | undefined;
+    if (lang === 'python') {
+      const depManager = await select({
+        message: '请选择 Python 依赖管理工具：',
+        options: [
+          { value: 'uv' as PythonDepManager, label: 'uv', hint: '推荐 — 极速包管理器 (Rust 实现)' },
+          { value: 'pip' as PythonDepManager, label: 'pip', hint: 'Python 标准包管理器' },
+          { value: 'conda' as PythonDepManager, label: 'conda', hint: '跨语言环境管理 (Anaconda/Miniforge)' },
+          { value: BACK_SENTINEL, label: '← 返回选择交付类型', hint: '重新选择交付类型' },
+        ],
+      });
+
+      if (isCancel(depManager)) {
+        cancel('操作已取消');
+        process.exit(0);
+      }
+
+      if (depManager === BACK_SENTINEL) {
+        continue; // 回到交付类型选择
+      }
+
+      pythonDepManager = depManager as PythonDepManager;
+    }
+
     return {
       type: 'next',
       data: {
         language: lang,
         deliveryType: deliveryType as string,
         dotnetVersion,
+        pythonDepManager,
       },
     };
   }

@@ -109,6 +109,7 @@ async function runInit(): Promise<void> {
             options.language = data.language;
             options.deliveryType = data.deliveryType;
             options.dotnetVersion = data.dotnetVersion;
+            options.pythonDepManager = data.pythonDepManager;
             currentStep = 4;
           } else if (result.type === 'back') {
             currentStep = 2;

@@ -15,6 +15,7 @@ const LANGUAGE_NAMES: Record<Language, string> = {
   typescript: 'TypeScript',
   rust: 'Rust',
   cpp: 'C++',
+  python: 'Python',
 };
 
 /**
@@ -84,6 +85,16 @@ export async function buildCopilotInstructions(
     ),
   ]);
 
+  // 读取 Python 依赖管理模板（仅 Python 语言）
+  let depManagerTemplate = '';
+  if (options.language === 'python' && options.pythonDepManager) {
+    depManagerTemplate = await readTemplate(
+      resBasePath,
+      'requirements',
+      `python-dep-${options.pythonDepManager}.md`,
+    );
+  }
+
   // 构建语言特定的交付类型额外内容
   let deliveryExtra = '';
   if (options.language === 'typescript' && options.deliveryType === 'Electron') {
@@ -96,6 +107,8 @@ export async function buildCopilotInstructions(
   if (options.dotnetVersion) {
     const versionLabel = options.dotnetVersion === 'net8' ? '.NET 8 (LTS)' : '.NET 10';
     runtimeEnv = versionLabel;
+  } else if (options.language === 'python') {
+    runtimeEnv = 'Python (>= 3.10)';
   } else {
     runtimeEnv = 'Node.js (>= 18)';
   }
@@ -104,6 +117,7 @@ export async function buildCopilotInstructions(
   const processedLangTemplate = replacePlaceholders(langTemplate, {
     DELIVERY_TYPE: options.deliveryType,
     DELIVERY_EXTRA: deliveryExtra,
+    DEP_MANAGER_RULES: depManagerTemplate.trim(),
   });
 
   // 处理目录结构模板中的占位符（如 {{PROJECT_NAME}}）
@@ -119,7 +133,9 @@ export async function buildCopilotInstructions(
     LANGUAGE: LANGUAGE_NAMES[options.language],
     LANGUAGE_SPECIFIC: options.dotnetVersion
       ? `- **.NET 版本**: ${options.dotnetVersion === 'net8' ? '.NET 8 (LTS)' : '.NET 10'}`
-      : '',
+      : options.language === 'python' && options.pythonDepManager
+        ? `- **依赖管理**: ${options.pythonDepManager}`
+        : '',
     DIRECTORY_STRUCTURE: processedDirStructure.trim(),
     CODING_STANDARDS: processedLangTemplate.trim(),
     DOC_PERMISSION_RULES: docTemplate.trim(),

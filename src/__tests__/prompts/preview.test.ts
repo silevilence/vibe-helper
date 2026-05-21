@@ -157,6 +157,20 @@ describe('showPreview', () => {
     expect(callArg).not.toContain('.NET');
   });
 
+  // ── 边界情况：Python 项目显示依赖管理器 ──
+  it('Python 项目显示 uv 依赖管理器', async () => {
+    await showPreview(makeOptions({
+      language: 'python',
+      deliveryType: 'FastAPI',
+      pythonDepManager: 'uv',
+    }));
+
+    const callArg = mockNote.mock.calls[0]![0] as string;
+    expect(callArg).toContain('Python');
+    expect(callArg).toContain('FastAPI');
+    expect(callArg).toContain('uv');
+  });
+
   // ── 边界情况：无测试 ──
   it('无测试策略显示正确标签', async () => {
     await showPreview(makeOptions({ testStrategy: 'none' }));

@@ -102,16 +102,14 @@ export async function generateFiles(
 
   try {
     // ── 5.1 生成 .github/copilot-instructions.md ──
-    if (options.engines.includes('github-copilot')) {
-      const instructions = await buildCopilotInstructions(options, resBasePath);
-      const status = await safeWrite(
-        cwd,
-        '.github/copilot-instructions.md',
-        instructions,
-      );
-      if (status === 'created') result.created.push('.github/copilot-instructions.md');
-      else if (status === 'skipped') result.skipped.push('.github/copilot-instructions.md');
-    }
+    const instructions = await buildCopilotInstructions(options, resBasePath);
+    const status = await safeWrite(
+      cwd,
+      '.github/copilot-instructions.md',
+      instructions,
+    );
+    if (status === 'created') result.created.push('.github/copilot-instructions.md');
+    else if (status === 'skipped') result.skipped.push('.github/copilot-instructions.md');
 
     // ── 5.2 生成 ROADMAP.md ──
     const roadmapSrc = getRoadmapTemplatePath(resBasePath);
