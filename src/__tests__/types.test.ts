@@ -29,12 +29,11 @@ describe('LanguageDeliveryMap', () => {
     expect(LanguageDeliveryMap.csharp).toHaveLength(5);
   });
 
-  it('TypeScript 包含 CLI、React、Vue、NPM 包、Electron', () => {
+  it('TypeScript 包含全栈应用、CLI、NPM 包', () => {
+    expect(LanguageDeliveryMap.typescript).toContain('全栈应用');
     expect(LanguageDeliveryMap.typescript).toContain('CLI');
-    expect(LanguageDeliveryMap.typescript).toContain('React');
-    expect(LanguageDeliveryMap.typescript).toContain('Vue');
     expect(LanguageDeliveryMap.typescript).toContain('NPM 包');
-    expect(LanguageDeliveryMap.typescript).toContain('Electron');
+    expect(LanguageDeliveryMap.typescript).toHaveLength(3);
   });
 
   it('Rust 包含 CLI、WASM、嵌入式', () => {

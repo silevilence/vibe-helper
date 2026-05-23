@@ -53,6 +53,28 @@ export async function showPreview(options: InitOptions): Promise<PreviewAction> 
     ? ` → ${options.pythonDepManager}`
     : '';
 
+  // 全栈应用额外信息
+  let fullstackInfo = '';
+  if (options.deliveryType === '全栈应用' && options.webContainer) {
+    const containerLabels: Record<string, string> = {
+      browser: 'Web 浏览器端',
+      electron: 'Electron',
+      tauri: 'Tauri',
+    };
+    const frontendLabels: Record<string, string> = {
+      react: 'React',
+      vue: 'Vue',
+    };
+    const backendLabels: Record<string, string> = {
+      express: 'Express',
+    };
+    fullstackInfo = [
+      `容器: ${containerLabels[options.webContainer] || options.webContainer}`,
+      `前端: ${frontendLabels[options.frontendFramework || ''] || options.frontendFramework || ''}`,
+      `后端: ${backendLabels[options.backendFramework || ''] || options.backendFramework || ''}`,
+    ].join(' / ');
+  }
+
   const skillsInfo =
     options.skills.length > 0 ? options.skills.join('、') : '(未选择)';
 
@@ -60,7 +82,7 @@ export async function showPreview(options: InitOptions): Promise<PreviewAction> 
     `📛 项目名称: ${options.projectName}`,
     options.description ? `📝 项目描述: ${options.description}` : '',
     `🤖 AI 引擎: ${engineNames}`,
-    `🔧 技术栈: ${LANGUAGE_LABELS[options.language]} — ${options.deliveryType}${dotnetInfo}${pythonDepInfo}`,
+    `🔧 技术栈: ${LANGUAGE_LABELS[options.language]} — ${options.deliveryType}${dotnetInfo}${pythonDepInfo}${fullstackInfo ? ' (' + fullstackInfo + ')' : ''}`,
     `🧪 测试策略: ${TEST_LABELS[options.testStrategy]}`,
     `📄 文档权限: ${PERM_LABELS[options.docPermission]}自动更新`,
     `🔀 Git 权限: AI ${PERM_LABELS[options.gitPermission]}提交`,

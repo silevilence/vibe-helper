@@ -110,6 +110,9 @@ async function runInit(): Promise<void> {
             options.deliveryType = data.deliveryType;
             options.dotnetVersion = data.dotnetVersion;
             options.pythonDepManager = data.pythonDepManager;
+            options.webContainer = data.webContainer;
+            options.frontendFramework = data.frontendFramework;
+            options.backendFramework = data.backendFramework;
             currentStep = 4;
           } else if (result.type === 'back') {
             currentStep = 2;

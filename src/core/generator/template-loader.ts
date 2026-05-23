@@ -60,8 +60,13 @@ export async function buildCopilotInstructions(
   resBasePath: string,
 ): Promise<string> {
   // 并行读取所有需要的模板片段
-  // 目录结构根据语言选择不同的模板（回退到通用模板）
-  const dirStructureFile = `directory-structure-${options.language}.md`;
+  // 目录结构根据语言和交付类型选择不同的模板（回退到通用模板）
+  let dirStructureFile: string;
+  if (options.language === 'typescript' && options.deliveryType === '全栈应用') {
+    dirStructureFile = 'directory-structure-typescript-fullstack.md';
+  } else {
+    dirStructureFile = `directory-structure-${options.language}.md`;
+  }
   let dirStructure = await readTemplate(resBasePath, 'base', dirStructureFile);
   if (!dirStructure) {
     dirStructure = await readTemplate(resBasePath, 'base', 'directory-structure.md');
@@ -97,9 +102,27 @@ export async function buildCopilotInstructions(
 
   // 构建语言特定的交付类型额外内容
   let deliveryExtra = '';
-  if (options.language === 'typescript' && options.deliveryType === 'Electron') {
-    deliveryExtra =
-      '\n- 注意 Electron 主进程与渲染进程的代码隔离\n- 使用 IPC 通信时注意类型安全';
+  if (options.language === 'typescript' && options.deliveryType === '全栈应用') {
+    const containerLabel =
+      options.webContainer === 'electron'
+        ? 'Electron'
+        : options.webContainer === 'tauri'
+          ? 'Tauri'
+          : 'Web 浏览器端';
+    const frontendLabel =
+      options.frontendFramework === 'vue' ? 'Vue' : 'React';
+    const backendLabel = 'Express';
+
+    deliveryExtra = [
+      `- **运行容器**: ${containerLabel}`,
+      `- **前端框架**: ${frontendLabel}`,
+      `- **后端框架**: ${backendLabel}`,
+      '',
+      '### 全栈应用架构规范',
+      '- 前后端架构解耦与物理隔离，后端逻辑映射至 `src/server` 目录，前端资产映射至 `src/web` 目录',
+      '- 前端与后端通过 REST API 或 WebSocket 通信，接口契约需明确定义',
+      '- 前端独立构建与开发服务器，后端提供 API 服务',
+    ].join('\n');
   }
 
   // 构建运行时环境描述

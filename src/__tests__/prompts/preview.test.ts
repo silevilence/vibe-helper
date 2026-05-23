@@ -157,6 +157,23 @@ describe('showPreview', () => {
     expect(callArg).not.toContain('.NET');
   });
 
+  // ── 边界情况：TypeScript 全栈应用预览包含容器/前端/后端信息 ──
+  it('TypeScript 全栈应用预览包含容器/前端/后端信息', async () => {
+    await showPreview(makeOptions({
+      language: 'typescript',
+      deliveryType: '全栈应用',
+      webContainer: 'electron',
+      frontendFramework: 'vue',
+      backendFramework: 'express',
+    }));
+
+    const callArg = mockNote.mock.calls[0]![0] as string;
+    expect(callArg).toContain('全栈应用');
+    expect(callArg).toContain('Electron');
+    expect(callArg).toContain('Vue');
+    expect(callArg).toContain('Express');
+  });
+
   // ── 边界情况：Python 项目显示依赖管理器 ──
   it('Python 项目显示 uv 依赖管理器', async () => {
     await showPreview(makeOptions({

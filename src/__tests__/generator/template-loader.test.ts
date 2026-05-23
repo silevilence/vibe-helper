@@ -145,12 +145,12 @@ describe('buildCopilotInstructions', () => {
     expect(result).toContain('优秀的软件项目');
   });
 
-  // ── 边界情况：Electron 交付类型带额外注释 ──
-  it('TypeScript Electron 项目包含额外注意提示', async () => {
+  // ── 正常情况：TypeScript 全栈应用（React + Express + 浏览器端） ──
+  it('TypeScript 全栈应用项目包含完整架构规范', async () => {
     mockReadFile.mockImplementation((filePath: string | Buffer | URL) => {
       const p = String(filePath).replace(/\\/g, '/');
-      if (p.includes('directory-structure-typescript.md')) {
-        return Promise.resolve('dir');
+      if (p.includes('directory-structure-typescript-fullstack.md')) {
+        return Promise.resolve('├── src/\n│   ├── server/\n│   ├── web/\n│   └── shared/\n');
       }
       if (p.endsWith('base/copilot-instructions.md')) {
         return Promise.resolve('{{CODING_STANDARDS}}');
@@ -161,10 +161,18 @@ describe('buildCopilotInstructions', () => {
       return Promise.resolve('');
     });
 
-    const options = makeOptions({ deliveryType: 'Electron' });
+    const options = makeOptions({
+      deliveryType: '全栈应用',
+      webContainer: 'browser',
+      frontendFramework: 'react',
+      backendFramework: 'express',
+    });
     const result = await buildCopilotInstructions(options, RES_BASE);
-    expect(result).toContain('Electron 主进程与渲染进程');
-    expect(result).toContain('IPC 通信');
+    expect(result).toContain('全栈应用');
+    expect(result).toContain('React');
+    expect(result).toContain('Express');
+    expect(result).toContain('src/server');
+    expect(result).toContain('src/web');
   });
 
   // ── 边界情况：语言特定目录结构不存在时回退到通用模板 ──

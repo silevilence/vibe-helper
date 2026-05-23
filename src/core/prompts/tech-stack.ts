@@ -1,9 +1,10 @@
 /**
  * 步骤 3: 配置工程技术栈（基于动态级联交互）
  *
- * - 选取开发语言（单选闭环：C# / F# / TypeScript / Rust / C++）
+ * - 选取开发语言（单选闭环：C# / F# / TypeScript / Rust / C++ / Python）
  * - 根据所选语言，级联触发交付类型选择
  * - 根据所选语言，条件触发运行时环境配置（仅 C#/F# 时，触发 .NET 版本选择）
+ * - TypeScript "全栈应用" 触发动态级联子流程：容器 → 前端框架 → 后端框架
  * - 支持返回上一步及级联内部回退
  */
 import { select, isCancel, cancel } from '@clack/prompts';
@@ -12,6 +13,9 @@ import {
   type Language,
   type DotNetVersion,
   type PythonDepManager,
+  type WebContainer,
+  type FrontendFramework,
+  type BackendFramework,
   type StepResult,
 } from '../types.js';
 
@@ -20,6 +24,9 @@ export interface TechStackInput {
   deliveryType: string;
   dotnetVersion?: DotNetVersion;
   pythonDepManager?: PythonDepManager;
+  webContainer?: WebContainer;
+  frontendFramework?: FrontendFramework;
+  backendFramework?: BackendFramework;
 }
 
 /** 返回上一步的标记值 */
@@ -86,6 +93,94 @@ export async function collectTechStack(): Promise<StepResult<TechStackInput>> {
       continue; // 回到语言选择
     }
 
+    // ── 3.2a 级联子流程：TypeScript "全栈应用" → 容器/前端/后端选型 ──
+    let webContainer: WebContainer | undefined;
+    let frontendFramework: FrontendFramework | undefined;
+    let backendFramework: BackendFramework | undefined;
+
+    if (lang === 'typescript' && deliveryType === '全栈应用') {
+      // 内层循环：容器 → 前端 → 后端，支持逐级回退
+      let fullstackStep = 1; // 1=容器, 2=前端, 3=后端
+
+      while (fullstackStep <= 3) {
+        if (fullstackStep === 1) {
+          const container = await select({
+            message: '请选择目标运行容器：',
+            options: [
+              { value: 'browser' as WebContainer, label: 'Web 浏览器端', hint: '纯前端 SPA，部署到静态服务器/CDN' },
+              { value: 'electron' as WebContainer, label: 'Electron', hint: '跨平台桌面应用 (Chromium + Node.js)' },
+              { value: 'tauri' as WebContainer, label: 'Tauri', hint: '轻量级桌面应用 (Rust 后端 + Web 前端)' },
+              { value: BACK_SENTINEL, label: '← 返回选择交付类型', hint: '重新选择交付类型' },
+            ],
+          });
+
+          if (isCancel(container)) {
+            cancel('操作已取消');
+            process.exit(0);
+          }
+
+          if (container === BACK_SENTINEL) {
+            break; // 退出子循环，回到交付类型选择
+          }
+
+          webContainer = container as WebContainer;
+          fullstackStep = 2;
+        }
+
+        if (fullstackStep === 2) {
+          const frontend = await select({
+            message: '请选择前端视图层技术栈：',
+            options: [
+              { value: 'react' as FrontendFramework, label: 'React', hint: '生态最丰富的 UI 库' },
+              { value: 'vue' as FrontendFramework, label: 'Vue', hint: '渐进式 JavaScript 框架' },
+              { value: BACK_SENTINEL, label: '← 返回选择运行容器', hint: '重新选择目标容器' },
+            ],
+          });
+
+          if (isCancel(frontend)) {
+            cancel('操作已取消');
+            process.exit(0);
+          }
+
+          if (frontend === BACK_SENTINEL) {
+            fullstackStep = 1;
+            continue;
+          }
+
+          frontendFramework = frontend as FrontendFramework;
+          fullstackStep = 3;
+        }
+
+        if (fullstackStep === 3) {
+          const backend = await select({
+            message: '请选择后端服务层技术栈：',
+            options: [
+              { value: 'express' as BackendFramework, label: 'Express', hint: '轻量级 Node.js Web 框架' },
+              { value: BACK_SENTINEL, label: '← 返回选择前端框架', hint: '重新选择前端框架' },
+            ],
+          });
+
+          if (isCancel(backend)) {
+            cancel('操作已取消');
+            process.exit(0);
+          }
+
+          if (backend === BACK_SENTINEL) {
+            fullstackStep = 2;
+            continue;
+          }
+
+          backendFramework = backend as BackendFramework;
+          fullstackStep = 4; // 完成，退出子循环
+        }
+      }
+
+      // 如果用户从子循环中回退到交付类型选择，重新开始外层循环
+      if (fullstackStep <= 3) {
+        continue;
+      }
+    }
+
     // ── 3.3 条件触发：仅 C#/F# 时选择 .NET 版本 ──
     let dotnetVersion: DotNetVersion | undefined;
     if (lang === 'csharp' || lang === 'fsharp') {
@@ -142,6 +237,9 @@ export async function collectTechStack(): Promise<StepResult<TechStackInput>> {
         deliveryType: deliveryType as string,
         dotnetVersion,
         pythonDepManager,
+        webContainer,
+        frontendFramework,
+        backendFramework,
       },
     };
   }

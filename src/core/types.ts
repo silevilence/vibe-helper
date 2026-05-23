@@ -11,11 +11,20 @@ export type Language = 'csharp' | 'fsharp' | 'typescript' | 'rust' | 'cpp' | 'py
 export const LanguageDeliveryMap: Record<Language, string[]> = {
   csharp: ['WinForm', 'WPF', 'MAUI', 'Console', 'ASP.NET Web API'],
   fsharp: ['Console', 'ASP.NET Web API', 'Fable'],
-  typescript: ['CLI', 'React', 'Vue', 'NPM 包', 'Electron'],
+  typescript: ['全栈应用', 'CLI', 'NPM 包'],
   rust: ['CLI', 'WASM', '嵌入式'],
   cpp: ['CLI', 'GUI (Qt)', '嵌入式'],
   python: ['CLI', 'FastAPI', 'Flask', 'Django', '脚本/自动化'],
 };
+
+/** TypeScript 全栈应用 — 目标运行容器 */
+export type WebContainer = 'browser' | 'electron' | 'tauri';
+
+/** TypeScript 全栈应用 — 前端视图层框架 */
+export type FrontendFramework = 'react' | 'vue';
+
+/** TypeScript 全栈应用 — 后端服务层框架 */
+export type BackendFramework = 'express';
 
 /** C# / F# 的 .NET 运行时版本 */
 export type DotNetVersion = 'net8' | 'net10';
@@ -51,6 +60,12 @@ export interface InitOptions {
   dotnetVersion?: DotNetVersion;
   /** Python 依赖管理工具（仅 Python 时选择） */
   pythonDepManager?: PythonDepManager;
+  /** 全栈应用 — 目标运行容器（仅 TypeScript "全栈应用" 时选择） */
+  webContainer?: WebContainer;
+  /** 全栈应用 — 前端视图层框架（仅 TypeScript "全栈应用" 时选择） */
+  frontendFramework?: FrontendFramework;
+  /** 全栈应用 — 后端服务层框架（仅 TypeScript "全栈应用" 时选择） */
+  backendFramework?: BackendFramework;
   /** 测试策略 */
   testStrategy: TestStrategy;
   /** 文档更新权限 */
