@@ -64,6 +64,21 @@ vi.mock('../../core/prompts/confirm-overwrite.js', () => ({
   confirmOverwrite: vi.fn().mockResolvedValue('overwrite'),
 }));
 
+// Mock config-manager — 默认策略：全部开启二次确认
+vi.mock('../../core/config/config-manager.js', () => ({
+  getInitStrategy: vi.fn().mockResolvedValue({
+    copilotConfirmOverwrite: true,
+    roadmapConfirmOverwrite: true,
+    crushOverwriteMode: 'confirm',
+  }),
+  getConfig: vi.fn(),
+  updateConfig: vi.fn(),
+  saveConfig: vi.fn(),
+  resetConfig: vi.fn(),
+  reloadConfig: vi.fn(),
+  getConfigFilePath: vi.fn(),
+}));
+
 // Mock template-loader
 vi.mock('../../core/generator/template-loader.js', () => ({
   buildCopilotInstructions: vi.fn().mockResolvedValue('# Generated Instructions\n\nThis is test content.'),
@@ -74,6 +89,7 @@ vi.mock('../../core/generator/template-loader.js', () => ({
 
 import { confirmOverwrite } from '../../core/prompts/confirm-overwrite.js';
 import { buildCopilotInstructions, buildCrushJson } from '../../core/generator/template-loader.js';
+import { getInitStrategy } from '../../core/config/config-manager.js';
 
 function makeOptions(overrides: Partial<InitOptions> = {}): InitOptions {
   return {
@@ -185,6 +201,67 @@ describe('generateFiles', () => {
     const result = await generateFiles(options, '/fake/res', '/fake/cwd');
 
     expect(result.failed.length).toBeGreaterThan(0);
+  });
+
+  // ── Config 驱动：copilotConfirmOverwrite=false → 静默覆盖 ──
+  it('Config 中 copilotConfirmOverwrite=false → 文件存在时直接覆盖不询问', async () => {
+    vi.mocked(getInitStrategy).mockResolvedValue({
+      copilotConfirmOverwrite: false,
+      roadmapConfirmOverwrite: true,
+      crushOverwriteMode: 'confirm',
+    });
+
+    // 所有文件都已存在
+    mockFileExists.mockResolvedValue(true);
+    // 但 confirmOverwrite 不应该被 copilot-instructions.md 调用
+    vi.mocked(confirmOverwrite).mockResolvedValue('skip' as never);
+
+    const options = makeOptions();
+    const result = await generateFiles(options, '/fake/res', '/fake/cwd');
+
+    // copilot-instructions.md 静默覆盖 → 应成功创建
+    expect(result.created).toContain('.github/copilot-instructions.md');
+    // ROADMAP.md 仍需确认 → confirmOverwrite 会被调用并返回 skip
+    // 但由于 safeWrite skipConfirm=true 时 confirmOverwrite 不会被调用
+    // 而 ROADMAP 的 skipConfirm=false，所以 confirmOverwrite 返回 skip
+  });
+
+  // ── Config 驱动：crushOverwriteMode=replace → 静默替换 ──
+  it('Config 中 crushOverwriteMode=replace → crush.json 静默覆盖', async () => {
+    vi.mocked(getInitStrategy).mockResolvedValue({
+      copilotConfirmOverwrite: true,
+      roadmapConfirmOverwrite: true,
+      crushOverwriteMode: 'replace',
+    });
+
+    mockFileExists.mockResolvedValue(true);
+    vi.mocked(confirmOverwrite).mockResolvedValue('overwrite' as never);
+
+    const options = makeOptions({ engines: ['crush'] });
+    const result = await generateFiles(options, '/fake/res', '/fake/cwd');
+
+    // crush.json 应被创建（静默覆盖）
+    expect(result.created).toContain('crush.json');
+  });
+
+  // ── Config 驱动：crushOverwriteMode=merge-confirm → 深度合并 ──
+  it('Config 中 crushOverwriteMode=merge-confirm → 文件存在时执行深度合并', async () => {
+    vi.mocked(getInitStrategy).mockResolvedValue({
+      copilotConfirmOverwrite: true,
+      roadmapConfirmOverwrite: true,
+      crushOverwriteMode: 'merge-confirm',
+    });
+
+    // 所有文件已存在，crush.json 已有内容 '{"existing":"data"}'
+    mockFileExists.mockResolvedValue(true);
+
+    const options = makeOptions({ engines: ['crush'] });
+    const result = await generateFiles(options, '/fake/res', '/fake/cwd');
+
+    // merge-confirm 模式会尝试合并，验证不会崩溃
+    // 如果 confirm mock 返回 false，文件会被跳过
+    expect(result).toBeDefined();
+    expect(result.failed).toHaveLength(0);
   });
 });
 

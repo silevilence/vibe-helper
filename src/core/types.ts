@@ -100,3 +100,43 @@ export interface ToolMenuItem {
 export type StepResult<T> =
   | { type: 'next'; data: T }
   | { type: 'back' };
+
+// ═══════════════════════════════════════════════════════════════
+// 全局配置 (Config) 相关类型
+// ═══════════════════════════════════════════════════════════════
+
+/** crush.json 文件覆盖策略 */
+export type CrushOverwriteMode = 'replace' | 'confirm' | 'merge-confirm';
+
+/** LLM 供应商类型枚举 */
+export type LLMProvider = 'openai' | 'gemini' | 'claude';
+
+/** Init 工具执行策略配置 */
+export interface InitStrategyConfig {
+  /** copilot-instructions.md 写入冲突控制：覆盖前二次确认拦截（默认：开启） */
+  copilotConfirmOverwrite: boolean;
+  /** ROADMAP.md 写入冲突控制：覆盖前二次确认拦截（默认：开启） */
+  roadmapConfirmOverwrite: boolean;
+  /** crush.json 覆盖模式控制 */
+  crushOverwriteMode: CrushOverwriteMode;
+}
+
+/** LLM 引擎网关配置（预留架构扩展点） */
+export interface LLMEngineConfig {
+  /** 供应商类型 */
+  provider: LLMProvider;
+  /** API 基础请求地址 */
+  baseUrl: string;
+  /** 模型资源标识 */
+  modelId: string;
+}
+
+/** 全局配置完整数据模型 */
+export interface VibeHelperConfig {
+  /** 配置版本号，用于迁移兼容 */
+  version: string;
+  /** Init 工具执行策略 */
+  initStrategy: InitStrategyConfig;
+  /** LLM 引擎网关配置 */
+  llm: LLMEngineConfig;
+}
